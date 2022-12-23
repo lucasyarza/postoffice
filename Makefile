@@ -52,6 +52,9 @@ env-start: ## Start project containers defined in docker-compose
 	$(DOCKER_COMPOSE_COMMAND) up migrations
 	$(DOCKER_COMPOSE_COMMAND) up -d app
 
+start-db:
+	$(DOCKER_COMPOSE_COMMAND) up -d db
+
 env-stop: ## Stop project containers defined in docker-compose
 	$(DOCKER_COMPOSE_COMMAND) stop
 
