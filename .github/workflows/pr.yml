@@ -1,6 +1,6 @@
 name: pr
 
-on: [pull_request]
+on: [push]
 
 # Sets the ENV `MIX_ENV` to `test` for running tests
 env:
