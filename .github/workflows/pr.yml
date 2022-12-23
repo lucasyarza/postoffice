@@ -32,4 +32,5 @@ jobs:
       - run: mix deps.get
       - run: mix ecto.setup
       - run: mix test
+      - run: mix coveralls.detail
 
