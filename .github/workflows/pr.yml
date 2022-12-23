@@ -2,22 +2,47 @@ name: pr
 
 on: [pull_request]
 
+# Sets the ENV `MIX_ENV` to `test` for running tests
+env:
+  MIX_ENV: test
+
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    services:
+      db:
+        image: postgres:12
+        ports: ['5432:5432']
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --fsync=off 
+          -c 'shared_preload_libraries="pg_stat_statements"' 
+          -c 'pg_stat_statements.track=all'
 
-    env:
-      MIX_ENV: test
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    runs-on: ubuntu-20.04
+    name: Test on OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      # Specify the OTP and Elixir versions to use when building
+      # and running the workflow steps.
+      matrix:
+        otp: ['25.0.4']       # Define the OTP version [required]
+        elixir: ['1.14.1']    # Define the elixir version [required]
 
     steps:
+      # Step: Setup Elixir + Erlang image as the base.
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
       - uses: actions/checkout@v3
 
-      - name: docker-compose build
-        run: make build
+      - run: mix local.rebar --force && mix local.hex --force
 
-      - name: Start env
-        run: APP_COMMAND='tail -f /dev/null' make env-start
+      - run: mix deps.get
 
-      - name: Test
-        run: make test
+      - run: mix ecto.setup
+      - run: mix test
+      - run: mix coveralls.circle
+
