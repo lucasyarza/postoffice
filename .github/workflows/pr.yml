@@ -8,18 +8,6 @@ env:
 
 jobs:
   build:
-    services:
-      db:
-        image: postgres:12
-        ports: ['5432:5432']
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --fsync=off 
-          -c 'shared_preload_libraries="pg_stat_statements"' 
-          -c 'pg_stat_statements.track=all'
-
-
     runs-on: ubuntu-20.04
     name: Test on OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
@@ -37,6 +25,8 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
       - uses: actions/checkout@v3
+
+      - run: make start-db
 
       - run: mix local.rebar --force && mix local.hex --force
 
